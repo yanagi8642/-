@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f0e5">
+  <meta name="description" content="梨の実りと、便利なまちの心地よさ。千葉県鎌ケ谷市の魅力を紹介します。">
+  <title>鎌ケ谷のまち案内 | 千葉県鎌ケ谷市</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f5f0e5;
+      --paper-deep: #ebe4d4;
+      --ink: #253e35;
+      --muted: #64746a;
+      --green: #376348;
+      --orange: #dc6446;
+      --yellow: #e2b64e;
+      --line: rgba(37, 62, 53, .22);
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", serif;
+      --sans: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+    .wrap { width: min(1180px, calc(100% - 64px)); margin-inline: auto; }
+
+    .site-header {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      min-height: 76px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      aspect-ratio: 1;
+      place-items: center;
+      border-radius: 50% 50% 48% 48%;
+      background: var(--orange);
+      color: #fffaf0;
+      font-family: var(--serif);
+      font-size: 16px;
+    }
+
+    .brand-name { font-family: var(--serif); font-size: 15px; font-weight: 700; }
+    .brand-sub { display: block; margin-top: 2px; color: var(--muted); font: 10px var(--sans); letter-spacing: .08em; }
+
+    nav { display: flex; align-items: center; gap: clamp(18px, 3vw, 38px); }
+    nav a {
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color .2s ease;
+    }
+    nav a:hover { color: var(--orange); }
+    .nav-note { color: var(--muted); font-size: 11px; }
+
+    .hero {
+      display: grid;
+      min-height: min(650px, calc(100svh - 170px));
+      grid-template-columns: .92fr 1.08fr;
+      align-items: center;
+      gap: clamp(36px, 7vw, 96px);
+      padding-block: 42px 54px;
+    }
+
+    .hero-copy { position: relative; z-index: 1; padding-block: 20px; }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 23px;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .15em;
+    }
+    .eyebrow::before { width: 26px; height: 1px; background: var(--orange); content: ""; }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      margin-bottom: 22px;
+      font-family: var(--serif);
+      font-size: clamp(52px, 7vw, 88px);
+      font-weight: 600;
+      letter-spacing: 0;
+      line-height: 1.25;
+    }
+    h1 span { display: block; color: var(--orange); }
+    .hero-lead { max-width: 29em; margin-bottom: 26px; font-size: 15px; line-height: 2; }
+    .hero-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .hero-link span { color: var(--orange); font-size: 18px; transition: transform .2s ease; }
+    .hero-link:hover span { transform: translateY(3px); }
+
+    .hero-visual {
+      position: relative;
+      display: grid;
+      min-height: clamp(360px, 42vw, 500px);
+      place-items: center;
+      overflow: hidden;
+      background: var(--paper-deep);
+      color: var(--green);
+      text-align: center;
+    }
+    .hero-visual::before, .hero-visual::after {
+      position: absolute;
+      width: min(72%, 330px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(55, 99, 72, .24);
+      border-radius: 50%;
+      content: "";
+    }
+    .hero-visual::after { width: min(56%, 250px); }
+    .hero-visual-copy { position: relative; z-index: 1; }
+    .hero-visual-image { display: block; width: min(72vw, 330px); aspect-ratio: 1; object-fit: cover; }
+    .hero-visual-label { display: block; margin-top: 18px; font-size: 11px; font-weight: 700; letter-spacing: .2em; }
+
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+    .section-kicker { margin-bottom: 10px; color: var(--orange); font-size: 10px; font-weight: 700; letter-spacing: .16em; }
+    h2 { margin-bottom: 0; font: 600 clamp(28px, 4vw, 42px)/1.4 var(--serif); }
+    .section-intro { max-width: 34em; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.9; }
+
+    .highlights { padding-block: 82px 94px; border-top: 1px solid var(--line); }
+    .highlight-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 42px; border-top: 1px solid var(--line); }
+    .highlight {
+      min-height: 236px;
+      padding: 25px 28px 20px 0;
+    }
+    .highlight + .highlight { padding-left: 28px; border-left: 1px solid var(--line); }
+    .highlight-number { display: block; margin-bottom: 24px; color: var(--orange); font: 500 14px var(--serif); }
+    .highlight h3 { margin-bottom: 12px; font: 600 20px var(--serif); }
+    .highlight p { max-width: 29em; margin-bottom: 0; color: var(--muted); font-size: 13px; line-height: 1.9; }
+
+    .closing {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 28px;
+      padding: 30px clamp(22px, 5vw, 56px);
+      background: var(--green);
+      color: #fbf8ef;
+    }
+    .closing p { max-width: 38em; margin: 8px 0 0; color: rgba(251, 248, 239, .8); font-size: 13px; line-height: 1.8; }
+    .closing h2 { font-size: clamp(21px, 3vw, 29px); }
+    .closing-mark { color: var(--yellow); font: 500 56px var(--serif); }
+
+    .pear-feature {
+      position: relative;
+      overflow: hidden;
+      background: var(--green);
+      color: #fbf8ef;
+    }
+    .pear-feature::after {
+      position: absolute;
+      top: -110px;
+      right: -80px;
+      width: 390px;
+      aspect-ratio: 1;
+      border: 1px solid rgba(226, 182, 78, .35);
+      border-radius: 50%;
+      content: "";
+      box-shadow: 0 0 0 34px rgba(226, 182, 78, .06), 0 0 0 72px rgba(226, 182, 78, .05);
+      pointer-events: none;
+    }
+    .pear-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      align-items: center;
+      gap: clamp(44px, 9vw, 130px);
+      padding-block: 92px;
+    }
+    .pear-feature .section-kicker { color: var(--yellow); }
+    .pear-feature h2 { max-width: 9em; font-size: clamp(32px, 4.5vw, 54px); }
+    .pear-copy p { margin-bottom: 18px; color: rgba(251, 248, 239, .84); font-size: 14px; line-height: 2.1; }
+    .pear-copy p:last-child { margin-bottom: 0; }
+    .pear-note { display: flex; align-items: center; gap: 12px; margin-top: 28px; color: var(--yellow); font-size: 11px; font-weight: 700; letter-spacing: .1em; }
+    .pear-note::before { width: 28px; height: 1px; background: currentColor; content: ""; }
+
+    .walk-section { padding-block: 92px 100px; }
+    .walk-heading { margin-bottom: 42px; }
+    .walk-list { border-top: 1px solid var(--line); }
+    .walk-item {
+      display: grid;
+      grid-template-columns: 90px minmax(180px, .75fr) 1.25fr;
+      align-items: start;
+      gap: 28px;
+      padding-block: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .walk-number { color: var(--orange); font: 500 15px var(--serif); }
+    .walk-item h3 { margin: 0; font: 600 20px var(--serif); }
+    .walk-item p { max-width: 45em; margin: 0; color: var(--muted); font-size: 13px; line-height: 2; }
+
+    .facilities { padding-block: 84px 92px; background: var(--paper-deep); }
+    .facility-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 34px;
+      margin-top: 38px;
+      border-top: 1px solid var(--line);
+    }
+    .facility {
+      padding-block: 25px;
+      border-bottom: 1px solid var(--line);
+    }
+    .facility h3 { margin-bottom: 10px; font: 600 20px var(--serif); }
+    .facility p { margin: 0; color: #4e6258; font-size: 13px; line-height: 2; }
+    .facility-type { display: block; margin-bottom: 12px; color: var(--orange); font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+
+    .landmark { background: var(--paper-deep); }
+    .landmark-inner {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      align-items: center;
+      gap: clamp(42px, 8vw, 110px);
+      padding-block: 84px;
+    }
+    .landmark-art {
+      position: relative;
+      display: grid;
+      min-height: 330px;
+      place-items: center;
+      overflow: hidden;
+      background: #d7d1bd;
+      color: var(--green);
+    }
+    .landmark-art::before, .landmark-art::after {
+      position: absolute;
+      width: 240px;
+      aspect-ratio: 1;
+      border: 1px solid rgba(37, 62, 53, .24);
+      border-radius: 50%;
+      content: "";
+    }
+    .landmark-art::after { width: 190px; }
+    .landmark-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .landmark-stamp { position: absolute; right: 20px; bottom: 18px; color: rgba(37, 62, 53, .68); font-size: 10px; letter-spacing: .14em; }
+    .landmark-copy h2 { margin-bottom: 20px; font-size: clamp(30px, 4vw, 46px); }
+    .landmark-copy p { margin-bottom: 16px; color: #4e6258; font-size: 14px; line-height: 2.05; }
+    .landmark-facts { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .landmark-fact { color: var(--muted); font-size: 11px; }
+    .landmark-fact strong { display: block; margin-top: 5px; color: var(--ink); font: 600 16px var(--serif); }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding-block: 23px 30px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    footer p { margin: 0; }
+
+    .reveal { animation: rise .75s cubic-bezier(.2, .7, .2, 1) both; }
+    .hero-visual { animation-delay: .12s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (min-width: 1500px) {
+      .hero { min-height: min(680px, calc(100svh - 190px)); }
+    }
+    @media (max-width: 760px) {
+      .wrap { width: min(100% - 40px, 580px); }
+      .site-header { min-height: 66px; flex-wrap: wrap; gap: 12px; padding-block: 10px; }
+      nav { width: 100%; justify-content: space-between; gap: 10px; }
+      nav a { font-size: 11px; }
+      .nav-note { display: none; }
+      .hero { min-height: auto; grid-template-columns: 1fr; gap: 26px; padding-block: 46px 62px; }
+      .hero-copy { padding: 0; }
+      h1 { font-size: clamp(52px, 12vw, 76px); }
+      .hero-lead { max-width: 36em; font-size: 14px; }
+      .hero-visual { min-height: min(58vw, 370px); }
+      .highlights { padding-block: 68px 72px; }
+      .section-heading { display: block; }
+      .section-intro { margin-top: 16px; }
+      .highlight-grid { grid-template-columns: 1fr; margin-top: 28px; }
+      .highlight, .highlight + .highlight { min-height: 0; padding: 22px 0; border-left: 0; }
+      .highlight + .highlight { border-top: 1px solid var(--line); }
+      .highlight-number { margin-bottom: 12px; }
+      .pear-inner { grid-template-columns: 1fr; gap: 24px; padding-block: 68px; }
+      .pear-feature::after { top: -50px; right: -200px; width: 300px; }
+      .walk-section { padding-block: 68px 74px; }
+      .walk-item { grid-template-columns: 60px 1fr; gap: 12px 18px; padding-block: 22px; }
+      .walk-item p { grid-column: 2; }
+      .landmark-inner { grid-template-columns: 1fr; gap: 30px; padding-block: 68px; }
+      .landmark-art { min-height: 250px; }
+      .facilities { padding-block: 68px 74px; }
+      .facility-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 430px) {
+      .wrap { width: calc(100% - 32px); }
+      .brand-name { font-size: 13px; }
+      .brand-sub { font-size: 9px; }
+      nav { gap: 8px; }
+      nav a { font-size: 10px; }
+      .hero { padding-top: 38px; }
+      h1 { font-size: 52px; }
+      .hero-visual { min-height: 218px; }
+      .closing { grid-template-columns: 1fr auto; padding: 24px 20px; }
+      .closing-mark { font-size: 42px; }
+      .walk-item { grid-template-columns: 1fr; gap: 10px; }
+      .walk-item p { grid-column: auto; }
+      .landmark-facts { gap: 12px 18px; }
+      footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header wrap">
+    <a class="brand" href="#top" aria-label="鎌ケ谷のまち案内 トップ">
+      <span class="brand-mark" aria-hidden="true">鎌</span>
+      <span class="brand-name">鎌ケ谷のまち案内<span class="brand-sub">CHIBA, JAPAN</span></span>
+    </a>
+    <nav aria-label="メインナビゲーション">
+      <a href="#about">まちの魅力</a>
+      <a href="#season">梨のある暮らし</a>
+      <a href="#facilities">施設案内</a>
+      <a href="#daibutsu">鎌ケ谷大仏</a>
+      <span class="nav-note">千葉県鎌ケ谷市</span>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap" aria-labelledby="page-title">
+      <div class="hero-copy reveal">
+        <p class="eyebrow">千葉県北西部のまち</p>
+        <h1 id="page-title">梨の実る、<span>鎌ケ谷。</span></h1>
+        <p class="hero-lead">千葉県北西部に位置する鎌ケ谷市。駅のにぎわいから少し離れると、梨園や畑の風景が広がります。都心へ出かけやすい便利さと、季節の実りを身近に感じる穏やかさ。その両方が、鎌ケ谷の日々を彩っています。</p>
+        <a class="hero-link" href="#about">鎌ケ谷の魅力を知る <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="hero-visual reveal" aria-hidden="true">
+        <div class="hero-visual-copy">
+          <img class="hero-visual-image" src="nasi.png" alt="">
+          <span class="hero-visual-label">FRUITFUL DAYS IN KAMAGAYA</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="highlights wrap" id="about" aria-labelledby="about-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">A GOOD PLACE TO LIVE</p>
+          <h2 id="about-title">便利さのそばに、<br>季節の風景。</h2>
+        </div>
+        <p class="section-intro">鎌ケ谷の魅力は、都市の便利さと自然の風景が無理なく隣り合っていること。駅周辺には日々の暮らしを支える施設が集まり、まちを歩けば果樹園や公園の緑にも出会えます。遠くへ出かける日も、近所で季節を楽しむ日も、それぞれの過ごし方を選べるまちです。</p>
+      </div>
+
+      <div class="highlight-grid" id="highlights">
+        <article class="highlight">
+          <span class="highlight-number">01 / FRUIT</span>
+          <h3>旬を味わう、鎌ケ谷の梨</h3>
+          <p>鎌ケ谷を代表する味覚といえば梨。市内には果樹園が点在し、夏から秋にかけて旬を迎えます。みずみずしい果実を味わうだけでなく、実りの季節に変わる景色や、梨づくりが身近にあるまちの空気も魅力。直売所や市内のお店で、その時季ならではの味を探す楽しみがあります。</p>
+        </article>
+        <article class="highlight">
+          <span class="highlight-number">02 / ACCESS</span>
+          <h3>行き先が広がる交通網</h3>
+          <p>新鎌ケ谷駅をはじめ、市内の駅から東武アーバンパークライン、北総線、京成松戸線などを利用できます。複数の路線がつながり、通勤・通学や買い物、休日のお出かけにも行き先に合わせた移動を選びやすいのが特徴。駅周辺の便利さが、毎日の暮らしを支えています。</p>
+        </article>
+        <article class="highlight">
+          <span class="highlight-number">03 / LOCAL</span>
+          <h3>歴史と緑にふれる</h3>
+          <p>江戸時代につくられた鎌ケ谷大仏は、小ぶりながら長く親しまれてきた地域のシンボル。まちの歴史にふれたあとは、公園や緑地を歩いてひと休みするのもおすすめです。また、鎌ケ谷スタジアムは北海道日本ハムファイターズのファームの拠点。試合や練習を通じて、野球の熱気を身近に感じられます。</p>
+        </article>
+      </div>
+
+      <aside class="closing" aria-label="鎌ケ谷の暮らし">
+        <div>
+          <h2>便利に暮らして、ゆっくり味わう。</h2>
+          <p>駅前で用事を済ませた帰りに、梨を買って季節を味わう。休日には公園を歩いたり、球場で声援を送ったり。特別な遠出をしなくても、便利な日常のすぐそばに楽しみが見つかります。暮らしやすさと、まちに根づいた風景。その自然な近さが、鎌ケ谷らしい心地よさです。</p>
+        </div>
+        <span class="closing-mark" aria-hidden="true">鎌</span>
+      </aside>
+    </section>
+
+    <section class="pear-feature" id="season" aria-labelledby="pear-title">
+      <div class="pear-inner wrap">
+        <div>
+          <p class="section-kicker">A TASTE OF THE SEASON</p>
+          <h2 id="pear-title">梨の季節が、<br>まちを近くする。</h2>
+        </div>
+        <div class="pear-copy">
+          <p>鎌ケ谷の梨は、このまちを語るときに欠かせない名産品です。夏の終わりから秋にかけて、果樹園では梨が実り、まちにも季節の訪れが感じられます。木の上で育った果実を味わうことは、土地の風土やつくり手の仕事にふれることでもあります。</p>
+          <p>梨の品種や販売時期は園によってさまざま。旬の時期には直売所や市内のお店をのぞいて、お気に入りの味を見つけてみるのも楽しみのひとつです。毎年訪れる季節の味が、地元の人にも訪れた人にも、鎌ケ谷を思い出すきっかけをつくります。</p>
+          <span class="pear-note">夏から秋へ、実りのリレー</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="landmark" id="daibutsu" aria-labelledby="daibutsu-title">
+      <div class="landmark-inner wrap">
+        <div class="landmark-art" aria-hidden="true">
+          <img class="landmark-image" src="daibutu.png" alt="">
+          <span class="landmark-stamp">A LOCAL LANDMARK</span>
+        </div>
+        <div class="landmark-copy">
+          <p class="section-kicker">HISTORY IN TOWN</p>
+          <h2 id="daibutsu-title">駅名にも残る、<br>鎌ケ谷大仏。</h2>
+          <p>鎌ケ谷大仏は、安永5年（1776年）に建立された青銅製の阿弥陀如来像です。像高は約1.8メートル。大仏としては小ぶりながら、その親しみやすい姿で長く地域の人々に大切にされてきました。</p>
+          <p>大きな寺院の奥ではなく、街の暮らしのすぐそばに佇んでいるのも、この大仏ならでは。近くには「鎌ケ谷大仏駅」があり、駅名にもその存在が刻まれています。訪ねたときは大仏だけでなく、周囲の道や街並みもゆっくり歩いてみてください。観光名所と日常が隣り合う、鎌ケ谷らしい風景に出会えます。</p>
+          <div class="landmark-facts" aria-label="鎌ケ谷大仏の概要">
+            <span class="landmark-fact">建立<span><strong>安永5年・1776年</strong></span></span>
+            <span class="landmark-fact">像高<span><strong>約1.8メートル</strong></span></span>
+            <span class="landmark-fact">像の種類<span><strong>青銅製 阿弥陀如来像</strong></span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="facilities" id="facilities" aria-labelledby="facilities-title">
+      <div class="wrap">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">EVERYDAY CONVENIENCE</p>
+            <h2 id="facilities-title">暮らしを支える、まちの施設。</h2>
+          </div>
+          <p class="section-intro">駅や買い物施設、行政窓口、医療機関、スポーツ施設など、毎日の生活や休日のお出かけに役立つ場所があります。目的に合わせて駅周辺や各地域をめぐると、鎌ケ谷での暮らしの様子が見えてきます。</p>
+        </div>
+        <div class="facility-grid">
+          <article class="facility">
+            <span class="facility-type">TRANSPORT</span>
+            <h3>新鎌ケ谷駅と市内の駅</h3>
+            <p>新鎌ケ谷駅には複数の鉄道路線が乗り入れ、市内外への移動の拠点になっています。駅周辺には商業施設や飲食店が集まり、通勤・通学の行き帰りや買い物の際にも立ち寄りやすいエリアです。市内にはほかにも駅があり、目的地や住む地域に合わせた移動を選べます。</p>
+          </article>
+          <article class="facility">
+            <span class="facility-type">SHOPPING</span>
+            <h3>イオン鎌ケ谷ショッピングセンター</h3>
+            <p>新鎌ケ谷駅の近くにあるショッピング施設です。食料品や日用品の買い物、食事など、日々の用事をまとめて済ませたいときに便利です。駅前の施設と周辺のお店をあわせて利用でき、仕事帰りや休日の買い物先として地域の暮らしを支えています。</p>
+          </article>
+          <article class="facility">
+            <span class="facility-type">CITY SERVICES</span>
+            <h3>鎌ケ谷市役所と公共施設</h3>
+            <p>市役所では、住民登録や各種手続き、子育てや福祉に関する相談など、暮らしに関わる行政サービスを利用できます。市内には図書館や公民館など、学びや地域活動に利用できる公共施設もあります。開庁日や利用時間、サービス内容は、訪問前に各施設の案内で確認すると安心です。</p>
+          </article>
+          <article class="facility">
+            <span class="facility-type">HEALTH &amp; SPORTS</span>
+            <h3>医療機関と鎌ケ谷スタジアム</h3>
+            <p>市内には日常の診療を担う医療機関があり、地域の健康を支えています。休日には公園で体を動かしたり、北海道日本ハムファイターズのファームの拠点である鎌ケ谷スタジアムで野球を楽しんだりできます。診療時間や試合日程、施設の利用条件は、それぞれ事前に確認してお出かけください。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="walk-section wrap" id="walk" aria-labelledby="walk-title">
+      <div class="walk-heading">
+        <p class="section-kicker">A DAY IN KAMAGAYA</p>
+        <h2 id="walk-title">まちの楽しみ方は、いろいろ。</h2>
+        <p class="section-intro">駅のにぎわいから歴史ある場所、季節の味まで。気になる場所をきっかけに、自分らしい鎌ケ谷の過ごし方を見つけてください。</p>
+      </div>
+      <div class="walk-list">
+        <article class="walk-item">
+          <span class="walk-number">01 / START</span>
+          <h3>新鎌ケ谷から、まちを知る</h3>
+          <p>複数路線が乗り入れる新鎌ケ谷駅は、鎌ケ谷を訪れるときの玄関口。駅周辺には買い物や食事に便利な施設が集まり、まち歩きの前後に立ち寄りやすいエリアです。まずは駅の周辺を歩いて、暮らしのにぎわいを感じてみましょう。</p>
+        </article>
+        <article class="walk-item">
+          <span class="walk-number">02 / HISTORY</span>
+          <h3>鎌ケ谷大仏に会いに行く</h3>
+          <p>江戸時代に建立された鎌ケ谷大仏は、地域の歴史を今に伝える存在です。大きさだけでは語れない親しみやすさがあり、地名や駅名にもその名が残っています。訪れた際は、周辺の街並みとあわせて、長く受け継がれてきた地域の記憶に思いを巡らせてみてください。</p>
+        </article>
+        <article class="walk-item">
+          <span class="walk-number">03 / LOCAL LIFE</span>
+          <h3>季節の味やスポーツを楽しむ</h3>
+          <p>梨の旬には市内の直売所やお店を訪ね、鎌ケ谷ならではの味を探してみるのがおすすめです。野球好きなら鎌ケ谷スタジアムも見逃せません。北海道日本ハムファイターズのファームの拠点として親しまれ、試合がある日には地域に活気が広がります。開催情報を確認して出かければ、旅の予定にも組み込みやすくなります。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>千葉県鎌ケ谷市の地域紹介</p>
+    <p>梨の実るまち、鎌ケ谷。</p>
+  </footer>
+</body>
+</html>

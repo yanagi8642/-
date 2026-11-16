@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>安川フュージョン・ダイナマイト EXTREME</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=M+PLUS+Rounded+1c:wght@800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            touch-action: none;
+            user-select: none;
+            overflow: hidden;
+            background: #0f172a;
+        }
+        .font-impact {
+            font-family: 'Black Han Sans', sans-serif;
+        }
+        .text-glow-yellow {
+            text-shadow: 0 0 12px #facc15, 0 0 24px #eab308, 0 0 36px #ca8a04;
+        }
+        .text-glow-rainbow {
+            text-shadow: 0 0 10px #ff0055, 0 0 20px #00e5ff, 0 0 30px #ffea00;
+        }
+        .btn-bounce {
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .btn-bounce:active {
+            transform: scale(0.92);
+        }
+        @keyframes rainbow-bg {
+            0% { background-color: #1e1b4b; }
+            33% { background-color: #31103f; }
+            66% { background-color: #062c43; }
+            100% { background-color: #1e1b4b; }
+        }
+        .bg-fever-animated {
+            animation: rainbow-bg 2s infinite linear;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between items-center text-white relative overflow-hidden">
+
+    <header class="w-full max-w-5xl px-3 py-2 sm:px-5 sm:py-3 flex justify-between items-center z-10 bg-slate-900/90 backdrop-blur border-b border-slate-700/60 shadow-2xl">
+        <!-- Logo & Mode -->
+        <div class="flex items-center gap-2">
+            <span class="text-xl sm:text-3xl font-impact text-yellow-400 tracking-wider">安×川</span>
+            <span class="text-[10px] sm:text-xs bg-gradient-to-r from-red-600 to-pink-600 text-white font-black px-2 py-0.5 rounded-full uppercase animate-pulse">EXTREME</span>
+        </div>
+        
+        <!-- Score & Combo & Time -->
+        <div class="flex items-center gap-3 sm:gap-6">
+            <div class="text-center">
+                <div class="text-[10px] sm:text-xs text-slate-400 font-bold">原子量</div>
+                <div id="scoreDisplay" class="text-lg sm:text-2xl font-black text-amber-300 font-mono">0</div>
+            </div>
+            
+            <!-- Combo Badge -->
+            <div class="text-center min-w-[50px]">
+                <div class="text-[10px] sm:text-xs text-slate-400 font-bold">COMBO</div>
+                <div id="comboDisplay" class="text-lg sm:text-2xl font-black text-pink-400 font-mono scale-90 transition-transform">x0</div>
+            </div>
+
+            <div class="text-center">
+                <div class="text-[10px] sm:text-xs text-slate-400 font-bold">倍率</div>
+                <div id="multiplierDisplay" class="text-sm sm:text-xl font-black text-yellow-300 font-mono">x1</div>
+            </div>
+
+            <div class="text-center">
+                <div class="text-[10px] sm:text-xs text-slate-400 font-bold">TIME</div>
+                <div id="timeDisplay" class="text-lg sm:text-2xl font-black text-cyan-400 font-mono">120s</div>
+            </div>
+        </div>
+
+        <!-- Fever Bar & Bomb Button -->
+        <div class="flex items-center gap-2 sm:gap-4">
+            <div class="w-20 sm:w-32">
+                <div class="flex justify-between text-[10px] sm:text-xs mb-0.5 font-bold text-pink-400">
+                    <span>FEVER</span>
+                    <span id="feverPercent">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2.5 sm:h-3.5 rounded-full overflow-hidden border border-slate-700">
+                    <div id="feverBar" class="bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-400 h-full w-0 transition-all duration-150"></div>
+                </div>
+            </div>
+
+            <!-- Auto Yasukawa Bomb Indicator -->
+            <div id="bombBtn" class="relative bg-gradient-to-r from-red-500 to-orange-500 text-white font-black text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-yellow-300/50 shadow-lg flex items-center gap-1 select-none">
+                <span>💣</span>
+                <span class="hidden sm:inline">AUTO BOMB</span>
+                <span id="bombBadge" class="bg-yellow-400 text-slate-950 text-[10px] px-1.5 py-0.2 rounded-full font-bold">READY</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="gameContainer" class="relative w-full flex-1 flex items-center justify-center overflow-hidden">
+        <canvas id="gameCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+
+        <!-- Dynamic Announcement Floating Text Overlay -->
+        <div id="announcement" class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-300 transform scale-50 z-20">
+            <div id="announcementText" class="text-3xl sm:text-6xl font-black text-center text-yellow-300 text-glow-yellow font-impact drop-shadow-2xl px-4">
+                安川完成！！
+            </div>
+        </div>
+
+        <div id="startModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 text-center z-30 overflow-y-auto">
+            <h1 class="text-3xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-red-500 mb-4 font-impact tracking-wider">
+                安と川を<br/>くっつけろ！ EX
+            </h1>
+            <p class="text-slate-300 text-xs sm:text-sm max-w-md mb-6 leading-relaxed">
+                画面内のオブジェクトをドラッグ＆フリックで合体！<br/>
+                「安川ビッグバン」同士をぶつけて<strong class="text-pink-400">「安川インフレーション」</strong>を起こせ！<br/>
+                <span class="text-yellow-300 text-xs mt-2 block font-bold">※必殺技ボムはカウントダウン毎に自動で爆発します！</span>
+            </p>
+
+            <button id="startBtn" class="btn-bounce bg-gradient-to-r from-yellow-400 via-amber-500 to-red-500 text-slate-950 font-black text-xl sm:text-2xl px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg shadow-amber-500/40 hover:brightness-110">
+                安川フュージョン開始！
+            </button>
+        </div>
+
+        <div id="resultModal" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
+            <div class="text-red-400 font-bold text-sm tracking-widest mb-1 animate-bounce">TIME UP!</div>
+            <h2 class="text-3xl sm:text-5xl font-black text-white mb-2 font-impact">安川測定完了！</h2>
+            
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 my-3 w-full max-w-sm shadow-2xl space-y-3">
+                <div>
+                    <div class="text-slate-400 text-xs mb-0.5">最終原子量</div>
+                    <div id="finalScore" class="text-4xl sm:text-5xl font-black text-amber-400 font-mono">0</div>
+                </div>
+
+                <div class="flex justify-center border-t border-slate-800 pt-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 block">最高コンボ</span>
+                        <strong id="maxComboText" class="text-lg text-pink-400 font-mono">0 COMBO</strong>
+                    </div>
+                </div>
+                
+                <div class="border-t border-slate-800 pt-3">
+                    <div class="text-slate-400 text-xs mb-1">獲得称号</div>
+                    <div id="rankTitle" class="text-lg sm:text-2xl font-black text-cyan-300 font-impact">究極の安川マスター</div>
+                </div>
+            </div>
+
+            <button id="restartBtn" class="btn-bounce bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-black text-xl px-8 py-3 rounded-full shadow-lg shadow-cyan-500/30 hover:brightness-110">
+                もう一度安川する！
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer Controls -->
+    <footer class="w-full max-w-5xl p-2.5 sm:p-3 z-10 bg-slate-900/80 backdrop-blur flex justify-between items-center text-xs text-slate-400 border-t border-slate-800">
+        <div class="text-[11px] sm:text-xs">操作: ドラッグで弾く / 💣 必殺技は自動発動</div>
+        <button id="soundToggleBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1 rounded-lg border border-slate-700 flex items-center gap-1 font-bold">
+            🔊 音声: ON
+        </button>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('gameContainer');
+
+        function formatAtomicMass(num) {
+            if (num === 0) return '0';
+            return num.toExponential(2);
+        }
+
+        // Master Level Configuration
+        const LEVELS = [
+            { id: 0, name: '安', color: '#facc15', textColor: '#451a03', radius: 22, score: 0 },
+            { id: 1, name: '川', color: '#38bdf8', textColor: '#082f49', radius: 22, score: 0 },
+            { id: 2, name: '安川', color: '#f97316', textColor: '#ffffff', radius: 32, score: 100 },
+            { id: 3, name: '安川ロボ', color: '#ef4444', textColor: '#ffffff', radius: 44, score: 300 },
+            { id: 4, name: '安川惑星', color: '#10b981', textColor: '#ffffff', radius: 56, score: 800 },
+            { id: 5, name: '安川雄惺', color: '#f59e0b', textColor: '#ffffff', radius: 70, score: 2000 },
+            { id: 6, name: '安川銀河', color: '#8b5cf6', textColor: '#ffffff', radius: 85, score: 5000 },
+            { id: 7, name: '安川ブラックホール', color: '#312e81', textColor: '#38bdf8', radius: 100, score: 12000 },
+            { id: 8, name: '安川ビッグバン', color: '#ec4899', textColor: '#ffffff', radius: 115, score: 30000 }
+        ];
+
+        // Game State Variables
+        let balls = [];
+        let particles = [];
+        let shockwaves = [];
+        let floatingTexts = [];
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let comboTimer = null;
+        let timeLeft = 120;
+        let gameActive = false;
+        let fever = 0;
+        let isFeverActive = false;
+        let isInflationActive = false;
+        let inflationMultiplier = 1; // インフレーションごとの100倍累積マルチプライヤー
+        let feverMultiplier = 1; // フィーバー発動ごとの2倍累積マルチプライヤー
+        let bombMultiplier = 1; // 必殺技（ボム）発動ごとの2倍累積マルチプライヤー
+        let feverTimer = null;
+        let gameTimer = null;
+        let soundEnabled = true;
+        let bombCooldown = 0; // Cooldown timer for Yasukawa Bomb
+        let bombTimer = null;
+
+        // Interaction, Camera & Audio State Variables
+        let draggedBall = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        let lastMousePos = { x: 0, y: 0 };
+        let mouseVel = { x: 0, y: 0 };
+        let shakeIntensity = 0;
+        let shakeTime = 0;
+        let synth = null;
+
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                try {
+                    Tone.start();
+                    synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    synth.volume.value = -6;
+                } catch(e) {}
+            }
+        }
+
+        function updateMultiplierDisplay() {
+            const totalMult = inflationMultiplier * feverMultiplier * bombMultiplier;
+            const multEl = document.getElementById('multiplierDisplay');
+            if (multEl) {
+                multEl.innerText = `x${totalMult.toLocaleString()}`;
+            }
+        }
+
+        function getRandomSpawnLevel() {
+            // インフレーション中は直接「安川」(Lv 2) が出現
+            if (isInflationActive) {
+                return 2;
+            }
+            // 通常出現比率：安(3) : 川(3) : 安川(2) : 安川ロボ(1) = 合計 9
+            const rand = Math.random() * 9;
+            if (rand < 3) return 0;      // 安 (3/9)
+            if (rand < 6) return 1;      // 川 (3/9)
+            if (rand < 8) return 2;      // 安川 (2/9)
+            return 3;                    // 安川ロボ (1/9)
+        }
+
+        function playMergeSound(levelIndex, currentCombo = 1) {
+            if (!soundEnabled || !synth) return;
+            try {
+                // Pitch rises with both Level and Combo count
+                const baseNotes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5', 'E5', 'G5', 'C6'];
+                const noteIdx = Math.min(levelIndex + Math.floor(currentCombo / 2), baseNotes.length - 1);
+                synth.triggerAttackRelease(baseNotes[noteIdx], '8n');
+            } catch(e) {}
+        }
+
+        function playExplosionSound() {
+            if (!soundEnabled || !synth) return;
+            try {
+                synth.triggerAttackRelease(['C2', 'G2'], '4n');
+            } catch(e) {}
+        }
+
+        function triggerScreenShake(intensity = 10, duration = 200) {
+            shakeIntensity = intensity;
+            shakeTime = duration;
+        }
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Ball {
+            constructor(x, y, levelIndex, isGolden = false) {
+                this.x = x;
+                this.y = y;
+                this.isGolden = isGolden;
+                this.level = levelIndex;
+                
+                if (this.isGolden) {
+                    this.name = '金の安川';
+                    this.color = '#fef08a';
+                    this.textColor = '#854d0e';
+                    this.radius = 36;
+                } else {
+                    const config = LEVELS[this.level];
+                    this.name = config.name;
+                    this.radius = config.radius;
+                    this.color = config.color;
+                    this.textColor = config.textColor;
+                }
+
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 3;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                
+                this.isDragged = false;
+                this.pulse = Math.random() * 10;
+            }
+
+            update() {
+                if (this.isDragged) {
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                    return;
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Physics friction
+                this.vx *= 0.992;
+                this.vy *= 0.992;
+
+                // Perfect Wall Bounce
+                if (this.x - this.radius <= 0) {
+                    this.x = this.radius;
+                    this.vx = Math.abs(this.vx) < 0.5 ? 2.5 : Math.abs(this.vx);
+                } else if (this.x + this.radius >= canvas.width) {
+                    this.x = canvas.width - this.radius;
+                    this.vx = Math.abs(this.vx) < 0.5 ? -2.5 : -Math.abs(this.vx);
+                }
+
+                if (this.y - this.radius <= 0) {
+                    this.y = this.radius;
+                    this.vy = Math.abs(this.vy) < 0.5 ? 2.5 : Math.abs(this.vy);
+                } else if (this.y + this.radius >= canvas.height) {
+                    this.y = canvas.height - this.radius;
+                    this.vy = Math.abs(this.vy) < 0.5 ? -2.5 : -Math.abs(this.vy);
+                }
+
+                if (isFeverActive) {
+                    this.vx += (Math.random() - 0.5) * 2;
+                    this.vy += (Math.random() - 0.5) * 2;
+                }
+
+                this.pulse += 0.06;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Big Bang score multiplier aura
+                if (this.level === 8 && !this.isGolden) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(236, 72, 153, 0.12)';
+                    ctx.fill();
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([8, 6]);
+                    ctx.strokeStyle = 'rgba(236, 72, 153, 0.6)';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                const scale = 1 + Math.sin(this.pulse) * (this.isGolden ? 0.08 : (this.level > 1 ? 0.05 : 0.02));
+                ctx.scale(scale, scale);
+
+                ctx.shadowColor = this.isGolden ? '#facc15' : this.color;
+                ctx.shadowBlur = this.isGolden ? 25 : (this.level > 1 ? 20 : 10);
+
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+
+                ctx.lineWidth = this.isGolden ? 4 : 3;
+                ctx.strokeStyle = this.isGolden ? '#ffffff' : '#ffffff';
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = this.textColor;
+                ctx.font = `900 ${Math.max(12, this.radius * (this.isGolden ? 0.38 : 0.45))}px 'M PLUS Rounded 1c', sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.name, 0, 1);
+
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 6 + 3;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 10 + 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.03 + 0.02;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Shockwave {
+            constructor(x, y, maxRadius = 250, color = '#facc15') {
+                this.x = x;
+                this.y = y;
+                this.radius = 10;
+                this.maxRadius = maxRadius;
+                this.color = color;
+                this.lineWidth = 12;
+                this.alpha = 1;
+            }
+
+            update() {
+                this.radius += 18;
+                this.lineWidth *= 0.92;
+                this.alpha = 1 - (this.radius / this.maxRadius);
+            }
+
+            draw() {
+                if (this.alpha <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.lineWidth = Math.max(1, this.lineWidth);
+                ctx.strokeStyle = this.color;
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        class FloatingText {
+            constructor(x, y, text, color) {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.color = color;
+                this.vy = -2.5;
+                this.alpha = 1;
+            }
+
+            update() {
+                this.y += this.vy;
+                this.alpha -= 0.025;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.font = "900 24px 'M PLUS Rounded 1c', sans-serif";
+                ctx.fillStyle = this.color;
+                ctx.textAlign = 'center';
+                ctx.shadowColor = '#000000';
+                ctx.shadowBlur = 8;
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        function createExplosion(x, y, color, count = 25) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+            shockwaves.push(new Shockwave(x, y, 180, color));
+        }
+
+        function triggerBigBangInflation(x, y) {
+            triggerScreenShake(25, 600);
+            createExplosion(x, y, '#facc15', 100);
+            createExplosion(x, y, '#ec4899', 100);
+            createExplosion(x, y, '#38bdf8', 100);
+
+            // インフレーション発生ごとに獲得スコア倍率が100倍に！
+            inflationMultiplier *= 100;
+
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => {
+                    playMergeSound(8, i + 1);
+                    playExplosionSound();
+                }, i * 120);
+            }
+
+            startFeverMode(true);
+        }
+
+        // Gravitational force from Lv5 (安川雄惺) and up
+        function applyGravity() {
+            for (let i = 0; i < balls.length; i++) {
+                const b1 = balls[i];
+                if (b1.isGolden || b1.level < 5) continue;
+
+                let gravityPower = (b1.level - 4) * 0.5;
+                if (b1.level >= 7) gravityPower *= 2; // Black hole & Big bang attraction
+
+                for (let j = 0; j < balls.length; j++) {
+                    if (i === j) continue;
+                    const b2 = balls[j];
+                    if (b2.isDragged) continue;
+
+                    const dx = b1.x - b2.x;
+                    const dy = b1.y - b2.y;
+                    const dist = Math.hypot(dx, dy);
+
+                    if (dist > b1.radius * 0.5 && dist < 550) {
+                        const force = (gravityPower * 14) / Math.max(dist, 40);
+                        b2.vx += (dx / dist) * force;
+                        b2.vy += (dy / dist) * force;
+                    }
+                }
+            }
+        }
+
+        function registerCombo() {
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+
+            const comboEl = document.getElementById('comboDisplay');
+            comboEl.innerText = `x${combo}`;
+            comboEl.style.transform = 'scale(1.4)';
+            setTimeout(() => comboEl.style.transform = 'scale(1.0)', 150);
+
+            if (comboTimer) clearTimeout(comboTimer);
+            comboTimer = setTimeout(() => {
+                combo = 0;
+                document.getElementById('comboDisplay').innerText = `x0`;
+            }, 2000); // 2 second combo window
+        }
+
+        function handleCollisions() {
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    const b1 = balls[i];
+                    const b2 = balls[j];
+
+                    const dx = b2.x - b1.x;
+                    const dy = b2.y - b1.y;
+                    const dist = Math.hypot(dx, dy);
+                    const minDist = b1.radius + b2.radius;
+
+                    if (dist < minDist) {
+                        const angle = Math.atan2(dy, dx);
+                        const sin = Math.sin(angle);
+                        const cos = Math.cos(angle);
+
+                        let canMerge = false;
+                        let newLevel = -1;
+                        let isBigBangInflation = false;
+
+                        // Golden ball merge rule: upgrades any partner ball by 1 rank
+                        if (b1.isGolden || b2.isGolden) {
+                            canMerge = true;
+                            const targetBall = b1.isGolden ? b2 : b1;
+                            newLevel = targetBall.isGolden ? 2 : Math.min(8, targetBall.level + 1);
+                        } else if ((b1.level === 0 && b2.level === 1) || (b1.level === 1 && b2.level === 0)) {
+                            canMerge = true;
+                            newLevel = 2; // "安川"
+                        } else if (b1.level === 0 && b2.level === 0) {
+                            canMerge = true;
+                            newLevel = 1; // "安" + "安" -> "川"
+                        } else if (b1.level === 1 && b2.level === 1) {
+                            canMerge = true;
+                            newLevel = 0; // "川" + "川" -> "安"
+                        } else if (b1.level === 8 && b2.level === 8) {
+                            canMerge = true;
+                            isBigBangInflation = true;
+                        } else if (b1.level >= 2 && b1.level === b2.level && b1.level < LEVELS.length - 1) {
+                            canMerge = true;
+                            newLevel = b1.level + 1;
+                        }
+
+                        if (canMerge) {
+                            const midX = (b1.x + b2.x) / 2;
+                            const midY = (b1.y + b2.y) / 2;
+
+                            // Check if merge happened inside a Big Bang aura field
+                            let inBigBangField = false;
+                            for (let k = 0; k < balls.length; k++) {
+                                if (k === i || k === j) continue;
+                                const bb = balls[k];
+                                if (bb.level === 8 && !bb.isGolden) {
+                                    if (Math.hypot(bb.x - midX, bb.y - midY) <= bb.radius * 2) {
+                                        inBigBangField = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            balls.splice(j, 1);
+                            balls.splice(i, 1);
+
+                            registerCombo();
+
+                            if (isBigBangInflation) {
+                                const modeMultiplier = isInflationActive ? 3 : (isFeverActive ? 2 : 1);
+                                let inflationBonus = 100000 * modeMultiplier * Math.max(1, combo * 0.5) * 10000 * inflationMultiplier * feverMultiplier * bombMultiplier;
+                                if (inBigBangField) inflationBonus *= 2;
+                                score += Math.round(inflationBonus);
+                                document.getElementById('scoreDisplay').innerText = formatAtomicMass(score);
+                                triggerBigBangInflation(midX, midY);
+
+                                // 安川ビッグバン同士のインフレーション合体時にも必殺が強制発動
+                                useYasukawaBomb();
+                                return;
+                            }
+
+                            const newBall = new Ball(midX, midY, newLevel);
+                            balls.push(newBall);
+
+                            // 安川ロボ(Level 3)以降の合体成功時、30%の確率で「金の安川」が追加出現
+                            if (newLevel >= 3 && Math.random() < 0.3) {
+                                const goldX = Math.max(30, Math.min(canvas.width - 30, midX + (Math.random() - 0.5) * 40));
+                                const goldY = Math.max(30, Math.min(canvas.height - 30, midY + (Math.random() - 0.5) * 40));
+                                balls.push(new Ball(goldX, goldY, 0, true));
+                                floatingTexts.push(new FloatingText(goldX, goldY, "✨ 金の安川出現！", "#fef08a"));
+                            }
+
+                            const baseScore = (LEVELS[newLevel].score || 100) * 10000;
+                            const modeMultiplier = isInflationActive ? 3 : (isFeverActive ? 2 : 1);
+                            let scoreMultiplier = modeMultiplier * Math.max(1, combo * 0.2) * inflationMultiplier * feverMultiplier * bombMultiplier;
+                            if (inBigBangField) scoreMultiplier *= 2;
+
+                            const gainedScore = Math.round(baseScore * scoreMultiplier);
+                            score += gainedScore;
+                            document.getElementById('scoreDisplay').innerText = formatAtomicMass(score);
+
+                            addFever(15);
+                            triggerScreenShake(newLevel * 2, 150);
+                            createExplosion(midX, midY, LEVELS[newLevel].color, 25 + newLevel * 5);
+                            playMergeSound(newLevel, combo);
+
+                            let label = `+${formatAtomicMass(gainedScore)} ${LEVELS[newLevel].name}`;
+                            if (combo > 1) label += ` (${combo}COMBO!)`;
+                            floatingTexts.push(new FloatingText(midX, midY, label, LEVELS[newLevel].color));
+
+                            if (newLevel >= 3) {
+                                triggerAnnouncement(`【合体】${LEVELS[newLevel].name}！！`);
+                            }
+
+                            // 安川ビッグバン(Level 8)ができるたびに必殺が強制的に起きる
+                            if (newLevel === 8) {
+                                useYasukawaBomb();
+                            }
+
+                            return;
+                        }
+
+                        // Bounce Physics
+                        const overlap = minDist - dist;
+                        b1.x -= cos * overlap * 0.5;
+                        b1.y -= sin * overlap * 0.5;
+                        b2.x += cos * overlap * 0.5;
+                        b2.y += sin * overlap * 0.5;
+
+                        const vx1 = b1.vx * cos + b1.vy * sin;
+                        const vy1 = b1.vy * cos - b1.vx * sin;
+                        const vx2 = b2.vx * cos + b2.vy * sin;
+                        const vy2 = b2.vy * cos - b2.vx * sin;
+
+                        b1.vx = vx2 * cos - vy1 * sin;
+                        b1.vy = vy1 * cos + vx2 * sin;
+                        b2.vx = vx1 * cos - vy2 * sin;
+                        b2.vy = vy2 * cos + vx1 * sin;
+                    }
+                }
+            }
+        }
+
+        function addFever(amount) {
+            if (isFeverActive) return;
+            fever = Math.min(100, fever + amount);
+            document.getElementById('feverBar').style.width = `${fever}%`;
+            document.getElementById('feverPercent').innerText = `${Math.round(fever)}%`;
+
+            if (fever >= 100) {
+                startFeverMode(false);
+            }
+        }
+
+        function startFeverMode(isInflation = false) {
+            isFeverActive = true;
+            isInflationActive = isInflation;
+
+            // フィーバーが起こるたびに獲得スコアが2倍になる
+            feverMultiplier *= 2;
+            updateMultiplierDisplay();
+
+            if (isInflationActive) {
+                triggerAnnouncement(`💥 安川インフレーション(フィーバー倍率 x${feverMultiplier}!) 💥`);
+            } else {
+                triggerAnnouncement(`⚡ 安川フィーバー突入(フィーバー倍率 x${feverMultiplier}!) ⚡`);
+            }
+
+            gameContainer.classList.add('bg-fever-animated');
+            
+            // Initial blast spawn during Fever/Inflation
+            for (let i = 0; i < 10; i++) {
+                spawnRandomBaseBall();
+            }
+
+            if (feverTimer) clearInterval(feverTimer);
+            const decrementRate = isInflationActive ? 2.5 : 5; // Double duration during Inflation
+
+            feverTimer = setInterval(() => {
+                fever -= decrementRate;
+                document.getElementById('feverBar').style.width = `${Math.max(0, fever)}%`;
+                document.getElementById('feverPercent').innerText = `${Math.max(0, Math.round(fever))}%`;
+
+                if (gameActive) {
+                    spawnRandomBaseBall();
+                }
+
+                if (fever <= 0) {
+                    clearInterval(feverTimer);
+                    isFeverActive = false;
+                    isInflationActive = false;
+                    gameContainer.classList.remove('bg-fever-animated');
+                }
+            }, 200);
+        }
+
+        function useYasukawaBomb() {
+            if (!gameActive) return;
+
+            initAudio();
+            triggerScreenShake(20, 500);
+            playExplosionSound();
+
+            // 必殺が起きるたびにスコア獲得量が2倍になる
+            bombMultiplier *= 2;
+            updateMultiplierDisplay();
+
+            triggerAnnouncement(`💣 必殺ダイナマイト発動！(必殺倍率 x${bombMultiplier}!) 💣`);
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            shockwaves.push(new Shockwave(cx, cy, Math.max(canvas.width, canvas.height), '#ef4444'));
+
+            // Blast all balls radially outwards
+            balls.forEach(b => {
+                const dx = b.x - cx;
+                const dy = b.y - cy;
+                const dist = Math.hypot(dx, dy) || 1;
+                const force = 25 + Math.random() * 15;
+                b.vx = (dx / dist) * force;
+                b.vy = (dy / dist) * force;
+            });
+
+            // Reset 15-second auto cooldown
+            bombCooldown = 15;
+            updateBombBadge();
+        }
+
+        function updateBombBadge() {
+            const badge = document.getElementById('bombBadge');
+            if (bombCooldown <= 0) {
+                badge.innerText = 'BOMB!';
+                badge.className = 'bg-yellow-400 text-slate-950 text-[10px] px-1.5 py-0.2 rounded-full font-bold animate-pulse';
+            } else {
+                badge.innerText = `${bombCooldown}s`;
+                badge.className = 'bg-slate-700 text-slate-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold';
+            }
+        }
+
+        function triggerAnnouncement(msg) {
+            const el = document.getElementById('announcement');
+            const txt = document.getElementById('announcementText');
+            txt.innerText = msg;
+            el.classList.remove('opacity-0', 'scale-50');
+            el.classList.add('opacity-100', 'scale-110');
+
+            setTimeout(() => {
+                el.classList.remove('opacity-100', 'scale-110');
+                el.classList.add('opacity-0', 'scale-50');
+            }, 1200);
+        }
+
+        function getPointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches && e.touches.length > 0 
+                ? e.touches[0] 
+                : (e.changedTouches && e.changedTouches.length > 0 ? e.changedTouches[0] : e);
+            return {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            };
+        }
+
+        function onPointerDown(e) {
+            if (!gameActive) return;
+            initAudio();
+            const pos = getPointerPos(e);
+
+            for (let i = balls.length - 1; i >= 0; i--) {
+                const b = balls[i];
+                const dist = Math.hypot(pos.x - b.x, pos.y - b.y);
+                if (dist < b.radius) {
+                    draggedBall = b;
+                    b.isDragged = true;
+                    dragOffsetX = pos.x - b.x;
+                    dragOffsetY = pos.y - b.y;
+                    lastMousePos = pos;
+                    break;
+                }
+            }
+        }
+
+        function onPointerMove(e) {
+            if (!draggedBall || !gameActive) return;
+            if (e.cancelable) e.preventDefault();
+            const pos = getPointerPos(e);
+
+            mouseVel = {
+                x: pos.x - lastMousePos.x,
+                y: pos.y - lastMousePos.y
+            };
+
+            draggedBall.x = Math.max(draggedBall.radius, Math.min(canvas.width - draggedBall.radius, pos.x - dragOffsetX));
+            draggedBall.y = Math.max(draggedBall.radius, Math.min(canvas.height - draggedBall.radius, pos.y - dragOffsetY));
+
+            lastMousePos = pos;
+        }
+
+        function onPointerUp() {
+            if (draggedBall) {
+                draggedBall.isDragged = false;
+                draggedBall.vx = mouseVel.x * 1.2;
+                draggedBall.vy = mouseVel.y * 1.2;
+                draggedBall = null;
+            }
+        }
+
+        canvas.addEventListener('mousedown', onPointerDown);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.cancelable) e.preventDefault();
+            onPointerDown(e);
+        }, { passive: false });
+        
+        window.addEventListener('touchmove', (e) => {
+            onPointerMove(e);
+        }, { passive: false });
+        
+        window.addEventListener('touchend', onPointerUp);
+        window.addEventListener('touchcancel', onPointerUp);
+
+        function spawnRandomBaseBall(forcedLevel = null) {
+            if (balls.length >= 50) return;
+            const margin = 50;
+            const x = margin + Math.random() * (canvas.width - margin * 2);
+            const y = margin + Math.random() * (canvas.height - margin * 2);
+            
+            // 4% chance for Golden Ball during normal play
+            if (forcedLevel === null && Math.random() < 0.04) {
+                balls.push(new Ball(x, y, 0, true));
+                return;
+            }
+
+            const level = forcedLevel !== null ? forcedLevel : getRandomSpawnLevel();
+            balls.push(new Ball(x, y, level, false));
+        }
+
+        function startGame() {
+            initAudio();
+            balls = [];
+            particles = [];
+            shockwaves = [];
+            floatingTexts = [];
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            timeLeft = 120;
+            fever = 0;
+            bombCooldown = 15; // 15秒ごとに自動ボム発動
+            isFeverActive = false;
+            isInflationActive = false;
+            inflationMultiplier = 1;
+            feverMultiplier = 1;
+            bombMultiplier = 1;
+            gameActive = true;
+
+            updateBombBadge();
+            updateMultiplierDisplay();
+
+            document.getElementById('scoreDisplay').innerText = '0';
+            document.getElementById('comboDisplay').innerText = 'x0';
+            document.getElementById('timeDisplay').innerText = '120s';
+            document.getElementById('feverBar').style.width = '0%';
+            document.getElementById('feverPercent').innerText = '0%';
+
+            document.getElementById('startModal').classList.add('hidden');
+            document.getElementById('resultModal').classList.add('hidden');
+
+            // 初期スポーン
+            for (let i = 0; i < 15; i++) {
+                spawnRandomBaseBall();
+            }
+
+            if (gameTimer) clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeDisplay').innerText = `${timeLeft}s`;
+
+                // ボムの自動発動カウントダウン処理
+                bombCooldown--;
+                if (bombCooldown <= 0) {
+                    useYasukawaBomb();
+                } else {
+                    updateBombBadge();
+                }
+
+                if (!isFeverActive) {
+                    spawnRandomBaseBall();
+                    spawnRandomBaseBall();
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameTimer);
+            if (feverTimer) clearInterval(feverTimer);
+
+            document.getElementById('finalScore').innerText = formatAtomicMass(score);
+            document.getElementById('maxComboText').innerText = `${maxCombo} COMBO`;
+            
+            let rank = '駆け出し安川使い';
+            if (score > 300000 * 10000) rank = '全知全能の安川インフレーション神 👑';
+            else if (score > 150000 * 10000) rank = '安川ビッグバンの創造主 🌌';
+            else if (score > 80000 * 10000) rank = '安川ブラックホールの観察者 🕳️';
+            else if (score > 30000 * 10000) rank = '安川銀河の支配者 ✨';
+            else if (score > 10000 * 10000) rank = '安川ロボの優秀パイロット 🤖';
+            else if (score > 3000 * 10000) rank = '一人前の安川フュージョナー 🔥';
+
+            document.getElementById('rankTitle').innerText = rank;
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+
+        document.getElementById('soundToggleBtn').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggleBtn').innerText = soundEnabled ? '🔊 音声: ON' : '🔇 音声: OFF';
+        });
+
+        function gameLoop() {
+            ctx.save();
+
+            // Camera Shake Translation
+            if (shakeTime > 0) {
+                const rx = (Math.random() - 0.5) * shakeIntensity;
+                const ry = (Math.random() - 0.5) * shakeIntensity;
+                ctx.translate(rx, ry);
+                shakeTime -= 16;
+            }
+
+            ctx.fillStyle = isFeverActive ? '#1e1b4b' : '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grid Lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            if (gameActive) {
+                applyGravity();
+                handleCollisions();
+
+                for (let i = shockwaves.length - 1; i >= 0; i--) {
+                    const sw = shockwaves[i];
+                    sw.update();
+                    sw.draw();
+                    if (sw.alpha <= 0) shockwaves.splice(i, 1);
+                }
+
+                for (let i = balls.length - 1; i >= 0; i--) {
+                    balls[i].update();
+                    balls[i].draw();
+                }
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.update();
+                    p.draw();
+                    if (p.alpha <= 0) particles.splice(i, 1);
+                }
+
+                for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                    const ft = floatingTexts[i];
+                    ft.update();
+                    ft.draw();
+                    if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+                }
+            }
+
+            ctx.restore();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start render loop
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
